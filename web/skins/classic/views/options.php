@@ -43,7 +43,8 @@ $tabs['medband'] = $SLANG['MediumBW'];
 $tabs['lowband'] = $SLANG['LowBW'];
 $tabs['phoneband'] = $SLANG['PhoneBW'];
 $tabs['eyeZm'] = "eyeZm";
-$tabs['users'] = $SLANG['Users'];
+if ( ZM_OPT_USE_AUTH )
+    $tabs['users'] = $SLANG['Users'];
 
 if ( isset($_REQUEST['tab']) )
     $tab = validHtmlStr($_REQUEST['tab']);
@@ -57,7 +58,7 @@ xhtmlHeaders( __FILE__, $SLANG['Options'] );
 <body>
   <div id="page">
     <div id="header">
-      <h2><?php echo $SLANG['Options'] ?></h2>
+      <h2><?= $SLANG['Options'] ?></h2>
     </div>
     <div id="content">
       <ul class="tabList">
@@ -67,13 +68,13 @@ foreach ( $tabs as $name=>$value )
     if ( $tab == $name )
     {
 ?>
-        <li class="active"><?php echo $value ?></li>
+        <li class="active"><?= $value ?></li>
 <?php
     }
     else
     {
 ?>
-        <li><a href="?view=<?php echo $view ?>&amp;tab=<?php echo $name ?>"><?php echo $value ?></a></li>
+        <li><a href="?view=<?= $view ?>&amp;tab=<?= $name ?>"><?= $value ?></a></li>
 <?php
     }
 }
@@ -81,61 +82,36 @@ foreach ( $tabs as $name=>$value )
       </ul>
       <div class="clear"></div>
 <?php 
-$skin_options = array_map( 'basename', glob('skins/*',GLOB_ONLYDIR) );
 if($tab == 'skins') {
 	$current_skin = $_COOKIE['zmSkin'];
-	$reload = false;
-	if ( isset($_GET['skin-choice']) && ( $_GET['skin-choice'] != $current_skin ) ) {
-		setcookie('zmSkin',$_GET['skin-choice'], time()+3600*24*30*12*10 );
+	if (isset($_GET['skin-choice'])) {
+		setcookie('zmSkin',$_GET['skin-choice'], time()+86400*365*30);
 		//header("Location: index.php?view=options&tab=skins&reset_parent=1");
-		$reload = true;
-	}
-	$current_css = $_COOKIE['zmCSS'];
-	if ( isset($_GET['css-choice']) and ( $_GET['css-choice'] != $current_css ) ) {
-		setcookie('zmCSS',$_GET['css-choice'], time()+3600*24*30*12*10 );
-		//header("Location: index.php?view=options&tab=skins&reset_parent=1");
-		$reload = true;
-	}
-
-	if ( $reload ) 
 		echo "<script type=\"text/javascript\">window.opener.location.reload();window.location.href=\"{$_SERVER['PHP_SELF']}?view={$view}&tab={$tab}\"</script>";
+	}
 
 ?>
-	<form name="optionsForm" method="get" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="hidden" name="view" value="<?php echo $view ?>"/>
-        <input type="hidden" name="tab" value="<?php echo $tab ?>"/>
+	<form name="optionsForm" method="get" action="<?= $_SERVER['PHP_SELF'] ?>">
+        <input type="hidden" name="view" value="<?= $view ?>"/>
+        <input type="hidden" name="tab" value="<?= $tab ?>"/>
 		<table class="contentTable major optionTable" cellspacing="0">
-			<thead><tr><th><?php echo $SLANG['Name'] ?></th><th><?php echo $SLANG['Description'] ?></th> <th><?php echo $SLANG['Value'] ?></th></tr></thead>
+			<thead><tr><th><?= $SLANG['Name'] ?></th><th><?= $SLANG['Description'] ?></th> <th><?= $SLANG['Value'] ?></th></tr></thead>
 			<tbody>
-				<tr>
-					<td>ZM_SKIN</td>
-					<td><?php echo $SLANG['SkinDescription']; ?></td>
-					<td><select name="skin-choice">
-						<?php
-							foreach($skin_options as $dir) {
-								echo '<option value="'.$dir.'" '.($current_skin==$dir ? 'SELECTED="SELECTED"' : '').'>'.$dir.'</option>';
-							}
-						?>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td>ZM_CSS</td>
-					<td><?php echo $SLANG['CSSDescription']; ?></td>
-					<td><select name="css-choice">
-						<?php
-							foreach( array_map( 'basename', glob('skins/'.$current_skin.'/css/*',GLOB_ONLYDIR) ) as $dir) {
-								echo '<option value="'.$dir.'" '.($current_css==$dir ? 'SELECTED="SELECTED"' : '').'>'.$dir.'</option>';
-							}
-						?>
-						</select>
-					</td>
-				</tr>
-			</tbody>
+			<td>ZM_SKIN</td>
+			<td><?php echo $SLANG['SkinDescription']; ?></td>
+			<td><select name="skin-choice">
+				<?php
+					foreach(glob('skins/*',GLOB_ONLYDIR) as $dir) {
+						$dir = basename($dir);
+						echo '<option value="'.$dir.'" '.($current_skin==$dir ? 'SELECTED' : '').'>'.$dir.'</option>';
+					}
+				?>
+				</select>
+			</td>
 		</table>
         <div id="contentButtons">
-          <input type="submit" value="<?php echo $SLANG['Save'] ?>"<?php echo $canEdit?'':' disabled="disabled"' ?>/>
-		  <input type="button" value="<?php echo $SLANG['Cancel'] ?>" onclick="closeWindow();"/>
+          <input type="submit" value="<?= $SLANG['Save'] ?>"<?= $canEdit?'':' disabled="disabled"' ?>/>
+		  <input type="button" value="<?= $SLANG['Cancel'] ?>" onclick="closeWindow();"/>
         </div>
      </form>
 	
@@ -144,24 +120,24 @@ if($tab == 'skins') {
 elseif ( $tab == "users" )
 {
 ?>
-      <form name="userForm" method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="hidden" name="view" value="<?php echo $view ?>"/>
-        <input type="hidden" name="tab" value="<?php echo $tab ?>"/>
+      <form name="userForm" method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+        <input type="hidden" name="view" value="<?= $view ?>"/>
+        <input type="hidden" name="tab" value="<?= $tab ?>"/>
         <input type="hidden" name="action" value="delete"/>
         <table id="contentTable" class="major userTable" cellspacing="0">
           <thead>
             <tr>
-              <th class="colUsername"><?php echo $SLANG['Username'] ?></th>
-              <th class="colLanguage"><?php echo $SLANG['Language'] ?></th>
-              <th class="colEnabled"><?php echo $SLANG['Enabled'] ?></th>
-              <th class="colStream"><?php echo $SLANG['Stream'] ?></th>
-              <th class="colEvents"><?php echo $SLANG['Events'] ?></th>
-              <th class="colControl"><?php echo $SLANG['Control'] ?></th>
-              <th class="colMonitors"><?php echo $SLANG['Monitors'] ?></th>
-              <th class="colSystem"><?php echo $SLANG['System'] ?></th>
-              <th class="colBandwidth"><?php echo $SLANG['Bandwidth'] ?></th>
-              <th class="colMonitor"><?php echo $SLANG['Monitor'] ?></th>
-              <th class="colMark"><?php echo $SLANG['Mark'] ?></th>
+              <th class="colUsername"><?= $SLANG['Username'] ?></th>
+              <th class="colLanguage"><?= $SLANG['Language'] ?></th>
+              <th class="colEnabled"><?= $SLANG['Enabled'] ?></th>
+              <th class="colStream"><?= $SLANG['Stream'] ?></th>
+              <th class="colEvents"><?= $SLANG['Events'] ?></th>
+              <th class="colControl"><?= $SLANG['Control'] ?></th>
+              <th class="colMonitors"><?= $SLANG['Monitors'] ?></th>
+              <th class="colSystem"><?= $SLANG['System'] ?></th>
+              <th class="colBandwidth"><?= $SLANG['Bandwidth'] ?></th>
+              <th class="colMonitor"><?= $SLANG['Monitor'] ?></th>
+              <th class="colMark"><?= $SLANG['Mark'] ?></th>
             </tr>
           </thead>
           <tbody>
@@ -186,17 +162,17 @@ elseif ( $tab == "users" )
         }
 ?>
             <tr>
-              <td class="colUsername"><?php echo makePopupLink( '?view=user&amp;uid='.$row['Id'], 'zmUser', 'user', validHtmlStr($row['Username']).($user['Username']==$row['Username']?"*":""), $canEdit ) ?></td>
-              <td class="colLanguage"><?php echo $row['Language']?validHtmlStr($row['Language']):'default' ?></td>
-              <td class="colEnabled"><?php echo $row['Enabled']?$SLANG['Yes']:$SLANG['No'] ?></td>
-              <td class="colStream"><?php echo validHtmlStr($row['Stream']) ?></td>
-              <td class="colEvents"><?php echo validHtmlStr($row['Events']) ?></td>
-              <td class="colControl"><?php echo validHtmlStr($row['Control']) ?></td>
-              <td class="colMonitors"><?php echo validHtmlStr($row['Monitors']) ?></td>
-              <td class="colSystem"><?php echo validHtmlStr($row['System']) ?></td>
-              <td class="colBandwidth"><?php echo $row['MaxBandwidth']?$bwArray[$row['MaxBandwidth']]:'&nbsp;' ?></td>
-              <td class="colMonitor"><?php echo $row['MonitorIds']?(join( ", ", $userMonitors )):"&nbsp;" ?></td>
-              <td class="colMark"><input type="checkbox" name="markUids[]" value="<?php echo $row['Id'] ?>" onclick="configureDeleteButton( this );"<?php if ( !$canEdit ) { ?> disabled="disabled"<?php } ?>/></td>
+              <td class="colUsername"><?= makePopupLink( '?view=user&amp;uid='.$row['Id'], 'zmUser', 'user', validHtmlStr($row['Username']).($user['Username']==$row['Username']?"*":""), $canEdit ) ?></td>
+              <td class="colLanguage"><?= $row['Language']?validHtmlStr($row['Language']):'default' ?></td>
+              <td class="colEnabled"><?= $row['Enabled']?$SLANG['Yes']:$SLANG['No'] ?></td>
+              <td class="colStream"><?= validHtmlStr($row['Stream']) ?></td>
+              <td class="colEvents"><?= validHtmlStr($row['Events']) ?></td>
+              <td class="colControl"><?= validHtmlStr($row['Control']) ?></td>
+              <td class="colMonitors"><?= validHtmlStr($row['Monitors']) ?></td>
+              <td class="colSystem"><?= validHtmlStr($row['System']) ?></td>
+              <td class="colBandwidth"><?= $row['MaxBandwidth']?$bwArray[$row['MaxBandwidth']]:'&nbsp;' ?></td>
+              <td class="colMonitor"><?= $row['MonitorIds']?(join( ", ", $userMonitors )):"&nbsp;" ?></td>
+              <td class="colMark"><input type="checkbox" name="markUids[]" value="<?= $row['Id'] ?>" onclick="configureDeleteButton( this );"<?php if ( !$canEdit ) { ?> disabled="disabled"<?php } ?>/></td>
             </tr>
 <?php
     }
@@ -204,28 +180,28 @@ elseif ( $tab == "users" )
           </tbody>
         </table>
         <div id="contentButtons">
-          <input type="button" value="<?php echo $SLANG['AddNewUser'] ?>" onclick="createPopup( '?view=user&amp;uid=0', 'zmUser', 'user' );"<?php if ( !canEdit( 'System' ) ) { ?> disabled="disabled"<?php } ?>/><input type="submit" name="deleteBtn" value="<?php echo $SLANG['Delete'] ?>" disabled="disabled"/><input type="button" value="<?php echo $SLANG['Cancel'] ?>" onclick="closeWindow();"/>
+          <input type="button" value="<?= $SLANG['AddNewUser'] ?>" onclick="createPopup( '?view=user&amp;uid=0', 'zmUser', 'user' );"<?php if ( !canEdit( 'System' ) ) { ?> disabled="disabled"<?php } ?>/><input type="submit" name="deleteBtn" value="<?= $SLANG['Delete'] ?>" disabled="disabled"/><input type="button" value="<?= $SLANG['Cancel'] ?>" onclick="closeWindow();"/>
         </div>
       </form>
 <?php
-} else {
-    if ( $tab == "system" ) {
+}
+else
+{
+    if ( $tab == "system" )
+    {
         $configCats[$tab]['ZM_LANG_DEFAULT']['Hint'] = join( '|', getLanguages() );
-        $configCats[$tab]['ZM_SKIN_DEFAULT']['Hint'] = join( '|', $skin_options );
-        $configCats[$tab]['ZM_CSS_DEFAULT']['Hint'] = join( '|', array_map ( 'basename', glob('skins/'.ZM_SKIN_DEFAULT.'/css/*',GLOB_ONLYDIR) ) );
-
     }
 ?>
-      <form name="optionsForm" method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="hidden" name="view" value="<?php echo $view ?>"/>
-        <input type="hidden" name="tab" value="<?php echo $tab ?>"/>
+      <form name="optionsForm" method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+        <input type="hidden" name="view" value="<?= $view ?>"/>
+        <input type="hidden" name="tab" value="<?= $tab ?>"/>
         <input type="hidden" name="action" value="options"/>
         <table id="contentTable" class="major optionTable" cellspacing="0">
           <thead>
             <tr>
-              <th><?php echo $SLANG['Name'] ?></th>
-              <th><?php echo $SLANG['Description'] ?></th>
-              <th><?php echo $SLANG['Value'] ?></th>
+              <th><?= $SLANG['Name'] ?></th>
+              <th><?= $SLANG['Description'] ?></th>
+              <th><?= $SLANG['Value'] ?></th>
             </tr>
           </thead>
           <tbody>
@@ -237,13 +213,13 @@ elseif ( $tab == "users" )
         $optionPromptText = !empty($OLANG[$shortName])?$OLANG[$shortName]['Prompt']:$value['Prompt'];
 ?>
             <tr>
-              <td><?php echo $shortName ?></td>
-              <td><?php echo validHtmlStr($optionPromptText) ?>&nbsp;(<?php echo makePopupLink( '?view=optionhelp&amp;option='.$name, 'zmOptionHelp', 'optionhelp', '?' ) ?>)</td>
+              <td><?= $shortName ?></td>
+              <td><?= validHtmlStr($optionPromptText) ?>&nbsp;(<?= makePopupLink( '?view=optionhelp&amp;option='.$name, 'zmOptionHelp', 'optionhelp', '?' ) ?>)</td>
 <?php   
         if ( $value['Type'] == "boolean" )
         {
 ?>
-              <td><input type="checkbox" id="<?php echo $name ?>" name="newConfig[<?php echo $name ?>]" value="1"<?php if ( $value['Value'] ) { ?> checked="checked"<?php } ?><?php echo $canEdit?'':' disabled="disabled"' ?>/></td>
+              <td><input type="checkbox" id="<?= $name ?>" name="newConfig[<?= $name ?>]" value="1"<?php if ( $value['Value'] ) { ?> checked="checked"<?php } ?><?= $canEdit?'':' disabled="disabled"' ?>/></td>
 <?php
         }
         elseif ( preg_match( "/\|/", $value['Hint'] ) )
@@ -255,7 +231,7 @@ elseif ( $tab == "users" )
             if ( count( $options ) > 3 )
             {
 ?>
-                <select name="newConfig[<?php echo $name ?>]"<?php echo $canEdit?'':' disabled="disabled"' ?>>
+                <select name="newConfig[<?= $name ?>]"<?= $canEdit?'':' disabled="disabled"' ?>>
 <?php
                 foreach ( $options as $option )
                 {
@@ -269,7 +245,7 @@ elseif ( $tab == "users" )
                         $optionLabel = $optionValue = $option;
                     }
 ?>
-                  <option value="<?php echo $optionValue ?>"<?php if ( $value['Value'] == $optionValue ) { echo ' selected="selected"'; } ?>><?php echo htmlspecialchars($optionLabel) ?></option>
+                  <option value="<?= $optionValue ?>"<?php if ( $value['Value'] == $optionValue ) { echo ' selected="selected"'; } ?>><?= htmlspecialchars($optionLabel) ?></option>
 <?php
                 }
 ?>
@@ -290,7 +266,7 @@ elseif ( $tab == "users" )
                         $optionLabel = $optionValue = $option;
                     }
 ?>
-                <span><input type="radio" id="<?php echo $name.'_'.preg_replace( '/[^a-zA-Z0-9]/', '', $optionValue ) ?>" name="newConfig[<?php echo $name ?>]" value="<?php echo $optionValue ?>"<?php if ( $value['Value'] == $optionValue ) { ?> checked="checked"<?php } ?><?php echo $canEdit?'':' disabled="disabled"' ?>/>&nbsp;<?php echo htmlspecialchars($optionLabel) ?></span>
+                <span><input type="radio" id="<?= $name.'_'.preg_replace( '/[^a-zA-Z0-9]/', '', $optionValue ) ?>" name="newConfig[<?= $name ?>]" value="<?= $optionValue ?>"<?php if ( $value['Value'] == $optionValue ) { ?> checked="checked"<?php } ?><?= $canEdit?'':' disabled="disabled"' ?>/>&nbsp;<?= htmlspecialchars($optionLabel) ?></span>
 <?php
                 }
             }
@@ -301,31 +277,31 @@ elseif ( $tab == "users" )
         elseif ( $value['Type'] == "text" )
         {
 ?>
-              <td><textarea id="<?php echo $name ?>" name="newConfig[<?php echo $name ?>]" rows="5" cols="40"<?php echo $canEdit?'':' disabled="disabled"' ?>><?php echo validHtmlStr($value['Value']) ?></textarea></td>
+              <td><textarea id="<?= $name ?>" name="newConfig[<?= $name ?>]" rows="5" cols="40"<?= $canEdit?'':' disabled="disabled"' ?>><?= validHtmlStr($value['Value']) ?></textarea></td>
 <?php
         }
         elseif ( $value['Type'] == "integer" )
         {
 ?>
-              <td><input type="text" id="<?php echo $name ?>" name="newConfig[<?php echo $name ?>]" value="<?php echo validHtmlStr($value['Value']) ?>" class="small"<?php echo $canEdit?'':' disabled="disabled"' ?>/></td>
+              <td><input type="text" id="<?= $name ?>" name="newConfig[<?= $name ?>]" value="<?= validHtmlStr($value['Value']) ?>" class="small"<?= $canEdit?'':' disabled="disabled"' ?>/></td>
 <?php
         }
         elseif ( $value['Type'] == "hexadecimal" )
         {
 ?>
-              <td><input type="text" id="<?php echo $name ?>" name="newConfig[<?php echo $name ?>]" value="<?php echo validHtmlStr($value['Value']) ?>" class="medium"<?php echo $canEdit?'':' disabled="disabled"' ?>/></td>
+              <td><input type="text" id="<?= $name ?>" name="newConfig[<?= $name ?>]" value="<?= validHtmlStr($value['Value']) ?>" class="medium"<?= $canEdit?'':' disabled="disabled"' ?>/></td>
 <?php
         }
         elseif ( $value['Type'] == "decimal" )
         {
 ?>
-              <td><input type="text" id="<?php echo $name ?>" name="newConfig[<?php echo $name ?>]" value="<?php echo validHtmlStr($value['Value']) ?>" class="small"<?php echo $canEdit?'':' disabled="disabled"' ?>/></td>
+              <td><input type="text" id="<?= $name ?>" name="newConfig[<?= $name ?>]" value="<?= validHtmlStr($value['Value']) ?>" class="small"<?= $canEdit?'':' disabled="disabled"' ?>/></td>
 <?php
         }
         else
         {
 ?>
-              <td><input type="text" id="<?php echo $name ?>" name="newConfig[<?php echo $name ?>]" value="<?php echo validHtmlStr($value['Value']) ?>" class="large"<?php echo $canEdit?'':' disabled="disabled"' ?>/></td>
+              <td><input type="text" id="<?= $name ?>" name="newConfig[<?= $name ?>]" value="<?= validHtmlStr($value['Value']) ?>" class="large"<?= $canEdit?'':' disabled="disabled"' ?>/></td>
 <?php
         }
 ?>
@@ -336,7 +312,7 @@ elseif ( $tab == "users" )
           </tbody>
         </table>
         <div id="contentButtons">
-          <input type="submit" value="<?php echo $SLANG['Save'] ?>"<?php echo $canEdit?'':' disabled="disabled"' ?>/><input type="button" value="<?php echo $SLANG['Cancel'] ?>" onclick="closeWindow();"/>
+          <input type="submit" value="<?= $SLANG['Save'] ?>"<?= $canEdit?'':' disabled="disabled"' ?>/><input type="button" value="<?= $SLANG['Cancel'] ?>" onclick="closeWindow();"/>
         </div>
       </form>
 <?php
